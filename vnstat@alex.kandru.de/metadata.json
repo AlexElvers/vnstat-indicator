@@ -1,0 +1,7 @@
+{
+	"shell-version": ["3.4"],
+	"uuid": "vnstat@alex.kandru.de",
+	"name": "Vnstat",
+	"description": "Shows current traffic",
+	"url": "https://github.com/AlexElvers/vnstat-indicator"
+}
