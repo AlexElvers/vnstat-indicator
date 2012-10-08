@@ -1,5 +1,5 @@
 /*
- * vnstat-indicator: Shows current network traffic.
+ * vnStat indicator: Shows current network traffic.
  * 
  * Copyright (C) 2012 Alexander Elvers
  * 
