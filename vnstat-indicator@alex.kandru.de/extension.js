@@ -26,6 +26,7 @@ const PopupMenu = imports.ui.popupMenu;
 const Signals = imports.signals;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
+const Config = imports.misc.config;
 
 const CONFIG_FILE = GLib.get_user_config_dir() + '/vnstat-indicator.conf';
 
@@ -118,27 +119,53 @@ Vnstat.prototype = {
 Signals.addSignalMethods(Vnstat.prototype);
 
 function init() {
-	let panel = Main.panel._rightBox;
-	box = new St.BoxLayout({ pack_start: true });
-	panel.insert_child_at_index(box, 1);
-	panel.child_set(box, { y_fill: true });
-	let device;
-	let file = Gio.file_new_for_path(CONFIG_FILE);
-	if (file.query_exists(null)) {
-		device = GLib.file_get_contents(CONFIG_FILE)[1];
+	if (Config.PACKAGE_VERSION == "3.4") {
+		let panel = Main.panel._rightBox;
+		box = new St.BoxLayout({ pack_start: true });
+		panel.insert_child_at_index(box, 1);
+		panel.child_set(box, { y_fill: true });
+		let device;
+		let file = Gio.file_new_for_path(CONFIG_FILE);
+		if (file.query_exists(null)) {
+			device = GLib.file_get_contents(CONFIG_FILE)[1];
+		}
+		else {
+			device = null;
+		}
+		vnstat = new Vnstat(device);
+		box.add_actor(vnstat.button.actor);
+		Main.panel._menus.addMenu(vnstat.button.menu);
 	}
-	else {
-		device = null;
-	}
-	vnstat = new Vnstat(device);
-	box.add_actor(vnstat.button.actor);
-	Main.panel._menus.addMenu(vnstat.button.menu);
 }
 
 function enable() {
-	Main.panel._rightBox.insert_child_at_index(box, 0);
+	if (Config.PACKAGE_VERSION == "3.4") {
+		Main.panel._rightBox.insert_child_at_index(box, 0);
+	}
+	else {
+		let device;
+		let file = Gio.file_new_for_path(CONFIG_FILE);
+		if (file.query_exists(null)) {
+			device = GLib.file_get_contents(CONFIG_FILE)[1];
+		}
+		else {
+			device = null;
+		}
+		vnstat = new Vnstat(device);
+		Main.panel.addToStatusArea("vnstat-indicator", vnstat.button, 0, "right");
+		Main.panel.menuManager.addMenu(vnstat.button.menu);
+	}
 }
 
 function disable() {
-	Main.panel._rightBox.remove_child(box);
+	if (Config.PACKAGE_VERSION == "3.4") {
+		Main.panel._rightBox.remove_child(box);
+	}
+	else {
+		Main.panel._rightBox.remove_actor(vnstat.button.actor);
+		Main.panel.menuManager.removeMenu(vnstat.button.menu);
+		vnstat.button.actor.destroy();
+		vnstat.button.destroy();
+		vnstat = null;
+	}
 }
